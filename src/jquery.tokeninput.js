@@ -258,7 +258,12 @@
                   return false;
               } else
               if ($(input).data("settings").tokenLimit === null || $(input).data("settings").tokenLimit !== token_count) {
-                  show_dropdown_hint();
+                 if (showing_all_results()) {
+                     do_search();
+                 } else {
+                     show_dropdown_hint();
+                 }
+
               }
               token_list.addClass($(input).data("settings").classes.focused);
           })
@@ -286,7 +291,7 @@
                         previous_token = input_token.prev();
                         next_token = input_token.next();
 
-                        if((previous_token.length && previous_token.get(0) === selected_token) || 
+                        if((previous_token.length && previous_token.get(0) === selected_token) ||
 						   (next_token.length && next_token.get(0) === selected_token)) {
                             // Check if there is a previous/next token and it is selected
                             if(event.keyCode === KEY.LEFT || event.keyCode === KEY.UP) {
@@ -720,7 +725,10 @@
           }
 
           // Show the input box and give it focus again
-          focusWithTimeout(input_box);
+         if (!showing_all_results()) {
+             focusWithTimeout(input_box);
+         }
+          //focusWithTimeout(input_box);
       }
 
       // Toggle selection of a token in the token list
@@ -945,18 +953,20 @@
           selected_dropdown_item = null;
       }
 
-      // Do a search and show the "searching" dropdown if the input is longer
+     // Do a search and show the "searching" dropdown if the input is longer or equal
       // than $(input).data("settings").minChars
       function do_search() {
           var query = input_box.val();
 
-          if(query && query.length) {
+        if((query && query.length) || (query == "" && showing_all_results())) {
               if(selected_token) {
                   deselect_token($(selected_token), POSITION.AFTER);
               }
 
-              if(query.length >= $(input).data("settings").minChars) {
-                  show_dropdown_searching();
+             if(query.length >= $(input).data("settings").minChars || query == "" && showing_all_results()) {
+                 if (!showing_all_results()) {
+                     show_dropdown_searching();
+                 }
                   clearTimeout(timeout);
 
                   timeout = setTimeout(function(){
@@ -967,6 +977,10 @@
               }
           }
       }
+
+     function showing_all_results() {
+         return $(input).data("settings").minChars == 0;
+     }
 
       // Do the actual search
       function run_search(query) {
@@ -1072,7 +1086,7 @@
           setTimeout(
             function() {
 			  object.focus();
-            }, 
+            },
 			50
 		  );
       }
